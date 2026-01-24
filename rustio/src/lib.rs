@@ -16,14 +16,16 @@ const CHUNI_IO_OPBTN_SERVICE: u8 = 0x02;
 
 #[repr(C)]
 struct ChunIoIpcMemoryInfo {
-    air_io_status: [u8; 6],
-    padding1: [u8; 4],
-    slider_io_status: [u8; 32],
-    coin_insertion: u8,
-    service_btn: u8,
-    test_btn: u8,
-    led_rgb_data: [u8; 96],
-    padding2: [u8; 13],
+    air_io_status: [u8; 6],      // 0-5
+    slider_io_status: [u8; 32],   // 6-37
+    led_rgb_data: [u8; 96],       // 38-133
+    test_btn: u8,                // 134
+    service_btn: u8,             // 135
+    coin_insertion: u8,          // 136
+    card_read: u8,               // 137
+    remote_card_read: u8,        // 138
+    remote_card_type: u8,        // 139
+    remote_card_id: [u8; 10],    // 140-149
 }
 
 struct ChunIoState {
