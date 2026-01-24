@@ -8,23 +8,10 @@ use windows::Win32::System::Memory::*;
 use windows::Win32::System::Power::*;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 
-mod config;
-use config::*;
+use shared::{ChunIoConfig, ChunIoIpcMemoryInfo, chuni_io_config_load};
 
 const CHUNI_IO_OPBTN_TEST: u8 = 0x01;
 const CHUNI_IO_OPBTN_SERVICE: u8 = 0x02;
-
-#[repr(C)]
-struct ChunIoIpcMemoryInfo {
-    air_io_status: [u8; 6],
-    padding1: [u8; 4],
-    slider_io_status: [u8; 32],
-    coin_insertion: u8,
-    service_btn: u8,
-    test_btn: u8,
-    led_rgb_data: [u8; 96],
-    padding2: [u8; 13],
-}
 
 struct ChunIoState {
     coin: bool,

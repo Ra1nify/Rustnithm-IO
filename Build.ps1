@@ -1,42 +1,53 @@
 # ============================================================
-# Rust AutoBuilder for chuniio
+# Rust Workspace AutoBuilder for rimeio & rustio
 # ============================================================
 
 Write-Host "============================================================"
-Write-Host "START COMPILING RUST PROJECT"
+Write-Host "START COMPILING RUST WORKSPACE"
 Write-Host "============================================================"
 
-# Check if Cargo.toml exists
 if (-not (Test-Path "Cargo.toml")) {
-    Write-Host "[ERR] Cargo.toml not found"
+    Write-Host "[ERR] Workspace Cargo.toml not found"
     pause
     exit 1
 }
 
-# Build x64 (64-bit) DLL
-Write-Host "[1/2] Now Compiling x64 (64-bit) DLL..."
-cargo build --release --target x86_64-pc-windows-msvc
+Write-Host "[1/3] Compiling rustio x64..."
+cargo build --release --target x86_64-pc-windows-msvc -p rustio
 
 if ($LASTEXITCODE -eq 0) {
     Copy-Item "target\x86_64-pc-windows-msvc\release\rustio.dll" "rustio_x64.dll" -Force
-    Write-Host "[SUCCESS] x64 Done"
+    Write-Host "[SUCCESS] rustio_x64.dll updated"
 } else {
-    Write-Host "[FAILURE] x64 failed"
+    Write-Host "[FAILURE] rustio x64 failed"
     pause
     exit 1
 }
 
 Write-Host ""
 
-# Build x86 (32-bit) DLL
-Write-Host "[2/2] Now Compiling x86 (i686) DLL..."
-cargo build --release --target i686-pc-windows-msvc
+Write-Host "[2/3] Compiling rustio x86..."
+cargo build --release --target i686-pc-windows-msvc -p rustio
 
 if ($LASTEXITCODE -eq 0) {
     Copy-Item "target\i686-pc-windows-msvc\release\rustio.dll" "rustio_x86.dll" -Force
-    Write-Host "[SUCCESS] x86 Done"
+    Write-Host "[SUCCESS] rustio_x86.dll updated"
 } else {
-    Write-Host "[FAILURE] x86 failed"
+    Write-Host "[FAILURE] rustio x86 failed"
+    pause
+    exit 1
+}
+
+Write-Host ""
+
+Write-Host "[3/3] Compiling rimeio..."
+cargo build --release -p rimeio
+
+if ($LASTEXITCODE -eq 0) {
+    Copy-Item "target\release\rimeio.dll" "rimeio.dll" -Force
+    Write-Host "[SUCCESS] rimeio.dll updated"
+} else {
+    Write-Host "[FAILURE] rimeio failed"
     pause
     exit 1
 }
