@@ -7,6 +7,8 @@ use windows::core::{PCWSTR, w};
 pub struct ChunIoIpcMemoryInfo {
     pub air_io_status: [u8; 6],      // 0-5
     pub slider_io_status: [u8; 32],   // 6-37
+    // Bytes 38-130 are 31 BRG pixels; byte 131 is the RGB update sequence.
+    // Bytes 132-133 are reserved and kept zero.
     pub led_rgb_data: [u8; 96],       // 38-133
     pub test_btn: u8,                // 134
     pub service_btn: u8,             // 135
@@ -15,6 +17,10 @@ pub struct ChunIoIpcMemoryInfo {
     pub remote_card_read: u8,        // 138
     pub remote_card_type: u8,        // 139
     pub remote_card_id: [u8; 10],    // 140-149
+    pub tower_rgb_data: [u8; 18],    // 150-167: left 9, right 9
+    pub billboard_rgb_data: [[u8; 180]; 2], // 168-527: board 0/1
+    pub cabinet_rgb_sequence: u8,    // 528: odd while writing
+    pub cabinet_rgb_reserved: [u8; 3], // 529-531
 }
 
 const CHUNI_IO_DEFAULT_CELLS: [u8; 32] = [

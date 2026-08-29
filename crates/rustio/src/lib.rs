@@ -252,17 +252,26 @@ pub extern "C" fn chuni_io_slider_stop() {
 #[no_mangle]
 pub extern "C" fn chuni_io_slider_set_leds(rgb: *const u8) {
     unsafe {
+        if rgb.is_null() {
+            return;
+        }
+
         let state_ptr = addr_of!(CHUNI_IO_STATE);
         if let Some(state_arc) = (*state_ptr).as_ref() {
             let state = state_arc.lock().unwrap();
             
             if state.file_mapping != 0 {
                 let mapping = state.file_mapping as *mut ChunIoIpcMemoryInfo;
+                let led_data = (*mapping).led_rgb_data.as_mut_ptr();
+                let ttl = led_data.add(93);
+                *ttl = (*ttl).wrapping_add(1) | 1;
                 std::ptr::copy_nonoverlapping(
                     rgb,
-                    (*mapping).led_rgb_data.as_mut_ptr(),
-                    96,
+                    led_data,
+                    93,
                 );
+                *ttl = (*ttl).wrapping_add(1) & !1;
+                std::ptr::write_bytes(led_data.add(94), 0, 2);
             }
         }
     }
@@ -308,5 +317,35 @@ pub extern "C" fn chuni_io_led_init() -> HRESULT {
 }
 
 #[no_mangle]
-pub extern "C" fn chuni_io_led_set_colors(_board: u8, _rgb: *mut u8) {
+pub extern "C" fn chuni_io_led_set_colors(board: u8, rgb: *const u8) {
+    unsafe {
+        if rgb.is_null() || board > 1 {
+            return;
+        }
+
+        let state_ptr = addr_of!(CHUNI_IO_STATE);
+        if let Some(state_arc) = (*state_ptr).as_ref() {
+            let state = state_arc.lock().unwrap();
+
+            if state.file_mapping != 0 {
+                let mapping = state.file_mapping as *mut ChunIoIpcMemoryInfo;
+                let rgb = std::slice::from_raw_parts(rgb, 256);
+                let sequence = &mut (*mapping).cabinet_rgb_sequence;
+                *sequence = (*sequence).wrapping_add(1) | 1;
+
+                let board_index = board as usize;
+                let billboard_len = if board == 0 { 150 } else { 180 };
+                (&mut (*mapping).billboard_rgb_data[board_index])[..billboard_len]
+                    .copy_from_slice(&rgb[..billboard_len]);
+                (&mut (*mapping).billboard_rgb_data[board_index])[billboard_len..].fill(0);
+
+                let tower_offset = board_index * 9;
+                (&mut (*mapping).tower_rgb_data)[tower_offset..tower_offset + 9]
+                    .copy_from_slice(&rgb[billboard_len..billboard_len + 9]);
+
+                *sequence = (*sequence).wrapping_add(1) & !1;
+                (*mapping).cabinet_rgb_reserved.fill(0);
+            }
+        }
+    }
 }
